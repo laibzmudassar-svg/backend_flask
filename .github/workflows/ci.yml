@@ -6,7 +6,7 @@ on:
     branches: [ master, day5-review ]
   pull_request:
     branches: [ master, day5-review ]
-    
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -33,4 +33,4 @@ jobs:
       - name: Run tests
         run: |
           pip install pytest
-          pytest --maxfail=5 --disable-warnings || echo "No tests found or tests failed - continuing pipeline"
+          pytest tests/ --maxfail=5 --disable-warnings
