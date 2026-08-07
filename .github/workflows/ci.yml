@@ -1,11 +1,12 @@
 name: CI Pipeline
 
 on:
+  workflow_dispatch:
   push:
     branches: [ master, day5-review ]
   pull_request:
     branches: [ master, day5-review ]
-
+    
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
