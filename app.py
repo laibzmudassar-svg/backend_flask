@@ -1,4 +1,4 @@
-this is not valid python code !!!
+
 from flask import Flask
 from routes.user_routes import user_bp
 from routes.post_routes import post_bp
