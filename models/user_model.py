@@ -1,12 +1,16 @@
-# Temporary fake database
-users_db = {
-    1: {"name": "Laiba", "email": "laiba@gmail.com"},
-    2: {"name": "Mudassar", "email": "mudassar@gmail.com"}
-}
+from extensions import db
 
-def get_user_by_id(user_id):
-    return users_db.get(user_id)
+class User(db.Model):
+    __tablename__ = 'users'
 
-def add_user(user_id, name, email):
-    users_db[user_id] = {"name": name, "email": email}
-    return users_db[user_id] 
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "email": self.email
+        }
