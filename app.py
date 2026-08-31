@@ -26,6 +26,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///app
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-change-me')
 
+# --- Payload Size Limit (protects against memory exhaustion attacks) ---
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB limit
+
 # --- Structured JSON Logging ---
 configure_logging(app)
 
@@ -39,11 +42,18 @@ socketio.init_app(app)
 
 swagger = Swagger(app)
 
+# --- Content Security Policy ---
+csp = {
+    'default-src': "'self'",
+    'script-src': "'self'",
+    'style-src': "'self'"
+}
+
 Talisman(
     app,
     force_https=False,
     strict_transport_security=True,
-    content_security_policy=None,
+    content_security_policy=csp,
     frame_options='DENY',
     x_content_type_options=True
 )

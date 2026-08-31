@@ -3,6 +3,7 @@ import jwt
 import os
 import datetime
 import json
+import bleach
 from extensions import redis_client, task_queue
 from flask import request, jsonify, g, abort
 from models.user_model import User
@@ -19,7 +20,9 @@ def create_user():
     if not data or "name" not in data or "email" not in data:
         abort(400, description="Missing name or email")
 
-    user = User(name=data["name"], email=data["email"])
+    clean_name = bleach.clean(data["name"], tags=[], strip=True)
+
+    user = User(name=clean_name, email=data["email"])
     db.session.add(user)
     db.session.commit()
 
@@ -69,7 +72,7 @@ def get_user(user_id):
 
 @validate_body(UserRegisterSchema)
 def register_user(validated_data=None):
-    name = validated_data.name
+    name = bleach.clean(validated_data.name, tags=[], strip=True)
     email = validated_data.email
     password = validated_data.password
 
@@ -182,4 +185,3 @@ def send_report():
         "message": "Report email task queued",
         "job_id": job.id
     }), 202
-    
