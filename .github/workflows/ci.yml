@@ -38,6 +38,13 @@ jobs:
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
       - name: Run tests
+        env:
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          JWT_SECRET: jwt-super-secret-key-2026
+          SECRET_KEY: mysecret123
+          DATABASE_URL: sqlite:///users.db
         run: |
           pip install pytest
           pytest tests/ --maxfail=5 --disable-warnings
