@@ -42,3 +42,24 @@ def send_report_email(name, email):
         redis_client.setex(idempotency_key, 3600, "1")  # remember for 1 hour
 
     return {"status": "sent", "email": email}
+
+
+def notify_post_author(post_id, comment_id):
+    """Background job: notify the post author that a new comment was added.
+    Runs via the RQ worker — does not block the comment creation request."""
+    from app import app
+    from extensions import db
+    from models.post_model import Post
+    from models.comment_model import Comment
+
+    with app.app_context():
+        post = Post.query.get(post_id)
+        comment = Comment.query.get(comment_id)
+
+        if not post or not comment:
+            print(f"[notify_post_author] Post or comment not found (post_id={post_id}, comment_id={comment_id})")
+            return
+
+        print(f"[notify_post_author] Notifying author of post '{post.title}' — new comment: \"{comment.text}\"")
+        # In a real system, this would send an email/push notification.
+        # Kept simple here to focus on demonstrating the async queuing pattern.

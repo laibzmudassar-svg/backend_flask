@@ -13,6 +13,8 @@ from schemas.user_schema import UserRegisterSchema, UserLoginSchema
 from tasks import send_welcome_email
 from rq import Retry
 from tasks import send_welcome_email, send_report_email
+from events import publish_event
+
 
 def create_user():
     data = request.get_json()
@@ -35,8 +37,9 @@ def create_user():
         "email": user.email
     }), 201
 
+
 def get_users():
-    
+
     # Check Redis cache first
     cached_users = redis_client.get("users")
 
@@ -95,6 +98,10 @@ def register_user(validated_data=None):
 
     db.session.add(user)
     db.session.commit()
+
+    # --- Domain Event: publish "user_registered" so any interested
+    # subscriber (email service, analytics, etc.) can react independently ---
+    publish_event("user_registered", {"user_id": user.id, "email": user.email})
 
     # --- Enqueue Producer: publish welcome-email job to the queue ---
     # This runs in the background via the worker, so this route
@@ -166,7 +173,8 @@ def get_profile():
         "name": user.name,
         "email": user.email
     }), 200
-    
+
+
 def send_report():
     """Test endpoint: enqueues an unreliable task with exponential backoff retries."""
     data = request.get_json()
