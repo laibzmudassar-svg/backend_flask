@@ -5,6 +5,7 @@ from flask import Flask, g, request
 from routes.user_routes import user_bp
 from routes.post_routes import post_bp
 from routes.health_routes import health_bp
+from routes.comment_routes import comment_bp
 import sockets
 from middleware.error_handler import register_error_handlers
 from extensions import db, migrate, limiter, socketio
@@ -21,6 +22,21 @@ import uuid
 load_dotenv()
 
 app = Flask(__name__)
+
+
+class NormalizeTrailingSlash:
+    """WSGI-level middleware: strips trailing slashes before routing happens."""
+    def __init__(self, wsgi_app):
+        self.wsgi_app = wsgi_app
+
+    def __call__(self, environ, start_response):
+        path = environ.get("PATH_INFO", "")
+        if path != "/" and path.endswith("/"):
+            environ["PATH_INFO"] = path.rstrip("/")
+        return self.wsgi_app(environ, start_response)
+
+
+app.wsgi_app = NormalizeTrailingSlash(app.wsgi_app)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///app.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -74,6 +90,7 @@ def add_correlation_id_header(response):
 
 from models.user_model import User
 from models.post_model import Post
+from models.comment_model import Comment
 
 
 @app.route("/")
@@ -88,6 +105,7 @@ def home():
 app.register_blueprint(user_bp)
 app.register_blueprint(post_bp)
 app.register_blueprint(health_bp)
+app.register_blueprint(comment_bp)
 register_error_handlers(app)
 
 if __name__ == "__main__":
